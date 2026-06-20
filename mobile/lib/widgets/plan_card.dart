@@ -217,7 +217,8 @@ class _CitationItem extends StatelessWidget {
 }
 
 /// A drafted document (e.g. an affidavit). Content can be long, so it is
-/// collapsed by default and expands inline; text is selectable for copying.
+/// collapsed by default; when expanded it scrolls within a capped height so a
+/// long affidavit doesn't balloon the chat. Text is selectable for copying.
 class _DraftDocTile extends StatelessWidget {
   final DraftDoc doc;
   const _DraftDocTile({required this.doc});
@@ -248,9 +249,15 @@ class _DraftDocTile extends StatelessWidget {
           title: Text(_prettyType,
               style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600)),
           children: [
-            SelectableText(
-              doc.content,
-              style: const TextStyle(fontSize: 12, height: 1.35),
+            // Cap long affidavits and let them scroll in place.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxHeight: 240),
+              child: SingleChildScrollView(
+                child: SelectableText(
+                  doc.content,
+                  style: const TextStyle(fontSize: 12, height: 1.35),
+                ),
+              ),
             ),
           ],
         ),
