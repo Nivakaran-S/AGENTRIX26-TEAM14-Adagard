@@ -1,90 +1,36 @@
 @import "tailwindcss";
 
-:root {
-  --background: #eef2f7;
-  --foreground: #0f172a;
+/* GovPath brand — Sri Lankan civic. Garnet seal + saffron gold on gazette paper. */
+@theme {
+  --color-ink: #211a24;
+  --color-muted: #6a6270;
+  --color-garnet: #7a1631;
+  --color-garnet-700: #5c0f24;
+  --color-saffron: #e0a22b;
+  --color-saffron-soft: #f7ead0;
+  --color-palm: #0e6b5c;
+  --color-palm-soft: #dcebe5;
+  --color-paper: #faf5ec;
+  --color-card: #ffffff;
+  --color-line: #e7decf;
 
-  /* GovPath navy palette */
-  --primary: #1f4e79;
-  --primary-dark: #173a5a;
-  --primary-light: #2c6aa0;
-  --primary-50: #eef4fb;
-
-  /* Government-seal gold accent */
-  --accent: #c8a04f;
-  --accent-light: #e8c06a;
-
-  /* Success green */
-  --success: #059669;
-  --success-50: #ecfdf5;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-primary: var(--primary);
-  --color-primary-dark: var(--primary-dark);
-  --color-primary-light: var(--primary-light);
-  --color-primary-50: var(--primary-50);
-  --color-accent: var(--accent);
-  --color-accent-light: var(--accent-light);
-  --color-success: var(--success);
-  --color-success-50: var(--success-50);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-display: var(--font-fraunces), Georgia, serif;
+  --font-sans: var(--font-hanken), system-ui, sans-serif;
+  --font-mono: var(--font-plex-mono), ui-monospace, monospace;
 }
 
 body {
-  background:
-    radial-gradient(70rem 70rem at 110% -5%, rgba(31, 78, 121, 0.08), transparent 55%),
-    radial-gradient(40rem 40rem at -10% 90%, rgba(200, 160, 79, 0.05), transparent 55%),
-    var(--background);
-  background-attachment: fixed;
-  color: var(--foreground);
-  font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
 }
 
-/* Card entrance animation */
-@keyframes rise {
-  from { opacity: 0; transform: translateY(10px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-.animate-rise {
-  animation: rise 0.35s ease-out both;
+/* Official letterhead rule — a hairline gold underline used beneath headers. */
+.rule-saffron {
+  background-image: linear-gradient(90deg, var(--color-saffron) 0 2.25rem, var(--color-line) 2.25rem 100%);
 }
 
-/* Shimmer for loading skeletons */
-@keyframes shimmer {
-  0%   { background-position: -200% 0; }
-  100% { background-position: 200% 0; }
-}
-.animate-shimmer {
-  background: linear-gradient(90deg, #e2e8f0 25%, #f1f5f9 50%, #e2e8f0 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.4s ease-in-out infinite;
-}
-
-/* Glow pulse for live indicator */
-@keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(5, 150, 105, 0.4); }
-  50%       { box-shadow: 0 0 0 4px rgba(5, 150, 105, 0); }
-}
-.animate-glow-pulse {
-  animation: glow-pulse 2s ease-in-out infinite;
-}
-
-/* Thin, unobtrusive scrollbars */
-.thin-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
-.thin-scroll::-webkit-scrollbar-thumb {
-  background: rgba(15, 23, 42, 0.15);
-  border-radius: 9999px;
-}
-.thin-scroll::-webkit-scrollbar-track { background: transparent; }
-
-/* Gold gradient text utility */
-.text-gold-gradient {
-  background: linear-gradient(135deg, var(--accent), var(--accent-light));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+/* Rubber-stamp framing for the approve / verified treatment. */
+.stamp {
+  letter-spacing: 0.14em;
 }

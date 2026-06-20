@@ -9,3 +9,5 @@ __pycache__/
 # Generated at runtime
 chroma_db/
 files/
+*.db
+govpath.db

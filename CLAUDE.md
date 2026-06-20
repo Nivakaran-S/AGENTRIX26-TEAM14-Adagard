@@ -71,9 +71,24 @@ Key mechanics future instances must understand:
 
 `action_agent.py` runs a Creator↔Evaluator loop (draft → PASS/fix → revise) but only drafts an affidavit for *archived* (≥20yr) birth/death records. `backend/BACKEND.md` documents the full design and the flagged additions.
 
+## Auth / RBAC
+
+Self-hosted JWT + SQLite (SQLModel), bcrypt passwords — see **`AUTH.md`** for the full design, seeded credentials, and endpoints. Citizens register/login with **NIC + password**; officers have **per-service + jurisdiction** scope (DS vs Kachcheri) with a Super-Admin. Key facts:
+- Users live in SQLite (`backend/app/db.py`, `app/models/user.py`); `SESSIONS`/`VERIFICATIONS` stay in-memory. Authorization is data-driven — `app/auth/rbac.py` `can_act(officer, service, office)` scopes the `/verifications` queue + approve; route guards in `app/auth/deps.py`.
+- `/chat` requires a **citizen** token; `/verifications*` require an **officer**; `/auth/officers*` require **Super-Admin**. Approver identity comes from the JWT, never the body.
+- Seed the demo roster (super-admin + 6 officers, password `changeme123`): `python -m app.auth.seed`.
+
 ## admin_web specifics
 
-`admin_web/AGENTS.md` warns: this is **Next.js 16 with breaking changes from older versions** — consult `node_modules/next/dist/docs/` before writing Next.js code rather than relying on prior-version conventions.
+`admin_web/AGENTS.md` warns: this is **Next.js 16 with breaking changes from older versions** — consult `node_modules/next/dist/docs/` before writing Next.js code rather than relying on prior-version conventions. Notably: `cookies()` is **async** (`await cookies()`), and middleware is renamed to **`proxy.ts`** (export `proxy(request)` + `config.matcher`). The portal stores the officer JWT in an httpOnly cookie and uses **server actions** (`app/actions.ts`) for login/approve/officer-management.
+
+## Design system (shared brand)
+
+Both clients share one civic identity (Sri-Lankan-official). Keep new UI consistent with it:
+- **Colors:** `garnet #7A1631` (primary/brand), `saffron #E0A22B` (accent/eyebrows), `palm #0E6B5C` (verified/active), `paper #FAF5EC` (background), `ink #211A24` (text), `line #E7DECF` (borders).
+- **Type:** **Fraunces** (display/wordmark/titles), **Hanken Grotesk** (UI/body), **IBM Plex Mono** (NIC numbers, form codes, uppercase eyebrow labels).
+- **Signature:** the GovPath **seal** mark (garnet disc + saffron ring + route glyph) in the wordmark; saffron "letterhead" hairline; Approve renders as an official **stamp**.
+- admin_web tokens live in `admin_web/app/globals.css` (`@theme`) + fonts in `app/layout.tsx`; reusable marks in `admin_web/components/Seal.tsx`. Flutter mirrors them in `mobile/lib/theme.dart` + `mobile/lib/widgets/brand.dart` (via `google_fonts`).
 
 ## Conventions
 

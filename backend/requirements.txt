@@ -12,3 +12,7 @@ requests
 pypdf
 pdfplumber
 reportlab
+sqlmodel
+bcrypt
+python-jose[cryptography]
+python-multipart
