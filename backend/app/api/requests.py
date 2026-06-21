@@ -28,7 +28,7 @@ _MIME = {"pdf": "application/pdf", "png": "image/png", "jpg": "image/jpeg",
 
 def _mime(name: str | None) -> str:
     ext = (name or "").rsplit(".", 1)[-1].lower()
-    return _MIME.get(ext, "application/pdf")
+    return _MIME.get(ext, "application/octet-stream")
 
 
 def _owned_request(db: Session, rid: str, user_id: int) -> Request:
@@ -99,8 +99,17 @@ async def upload_document(rid: str, file: UploadFile = File(...), type: str = Fo
     if not storage.configured():
         raise HTTPException(503, "document storage not configured (SUPABASE_SECRET_KEY missing)")
     data = await file.read()
+    # Trust the client content-type only if it's an allowed image/pdf; otherwise derive
+    # it from the filename (Flutter/file_picker often sends application/octet-stream).
+    allowed = {"image/jpeg", "image/png", "image/webp", "application/pdf"}
+    content_type = file.content_type if file.content_type in allowed else _mime(file.filename)
+    if content_type not in allowed:
+        raise HTTPException(status_code=415, detail="Unsupported file type — upload a PDF or image (jpg/png/webp).")
     path = storage.object_path(str(req.id), file.filename or "upload")
-    storage.upload(path, data, file.content_type or _mime(file.filename))
+    try:
+        storage.upload(path, data, content_type)
+    except Exception as exc:
+        raise HTTPException(status_code=400, detail=f"upload rejected by storage: {str(exc)[:160]}")
     doc = Document(request_id=req.id, type=type, filename=file.filename,
                    storage_path=path, status="uploaded")
     db.add(doc); db.commit(); db.refresh(doc)

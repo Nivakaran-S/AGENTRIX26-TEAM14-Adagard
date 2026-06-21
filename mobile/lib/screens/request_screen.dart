@@ -59,8 +59,10 @@ class _RequestScreenState extends State<RequestScreen> {
     try {
       await _api.uploadDocument(_requestId!, type, f.bytes!, f.name);
       setState(() => _uploaded.add(type));
-    } catch (e) {
-      setState(() => _error = 'Upload failed for $type');
+    } on ApiException catch (e) {
+      setState(() => _error = e.message);
+    } catch (_) {
+      setState(() => _error = 'Could not upload — check your connection.');
     }
   }
 

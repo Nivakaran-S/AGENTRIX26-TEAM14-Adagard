@@ -1,6 +1,7 @@
 // Backend client — matches /API_CONTRACT.md. Owner: Person B.
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:http_parser/http_parser.dart';
 import 'auth.dart';
 
 /// Backend base URL. Defaults to the deployed Render backend; override for local
@@ -12,6 +13,30 @@ const String kBaseUrl = String.fromEnvironment(
 
 /// Raised when the backend rejects the token (expired/invalid). The UI logs out.
 class UnauthorizedException implements Exception {}
+
+/// Carries a human-readable backend error (e.g. unsupported file type).
+class ApiException implements Exception {
+  final String message;
+  ApiException(this.message);
+  @override
+  String toString() => message;
+}
+
+MediaType _mediaTypeFor(String filename) {
+  switch (filename.toLowerCase().split('.').last) {
+    case 'pdf':
+      return MediaType('application', 'pdf');
+    case 'png':
+      return MediaType('image', 'png');
+    case 'jpg':
+    case 'jpeg':
+      return MediaType('image', 'jpeg');
+    case 'webp':
+      return MediaType('image', 'webp');
+    default:
+      return MediaType('application', 'octet-stream');
+  }
+}
 
 class GovPathApi {
   final AuthService _auth = AuthService();
@@ -61,12 +86,20 @@ class GovPathApi {
     final req = http.MultipartRequest('POST', Uri.parse('$kBaseUrl/requests/$requestId/documents'));
     if (token != null) req.headers['Authorization'] = 'Bearer $token';
     req.fields['type'] = type;
-    req.files.add(http.MultipartFile.fromBytes('file', bytes, filename: filename));
+    req.files.add(http.MultipartFile.fromBytes('file', bytes,
+        filename: filename, contentType: _mediaTypeFor(filename)));
     final streamed = await req.send();
     final text = await streamed.stream.bytesToString();
     if (streamed.statusCode == 401) {
       await _auth.logout();
       throw UnauthorizedException();
+    }
+    if (streamed.statusCode >= 400) {
+      String msg = 'Upload failed (${streamed.statusCode})';
+      try {
+        msg = (jsonDecode(text)['detail'] ?? msg).toString();
+      } catch (_) {}
+      throw ApiException(msg);
     }
     return jsonDecode(text) as Map<String, dynamic>;
   }
